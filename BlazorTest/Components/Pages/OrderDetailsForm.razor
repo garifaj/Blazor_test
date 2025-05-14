@@ -24,16 +24,19 @@
         </FluentGridItem>
 
         <!-- Car Brand -->
-        <FluentGridItem xs="12" sm="12" md="6">
-            <label style="font-weight: 650; margin-bottom:0.5rem">Car Brand:</label>
-            <FluentSelect @bind-Value="FormData.CarBrand" style="width: 100%;" TOption="string">
-                <FluentOption value="">Select brand</FluentOption>
-                @foreach (var brand in CarBrands)
-                {
-                    <FluentOption value="@brand">@brand</FluentOption>
-                }
-            </FluentSelect>
-        </FluentGridItem>
+            <FluentGridItem xs="12" sm="12" md="6">
+                <label style="font-weight: 650; margin-bottom:0.5rem">Car Brand:</label>
+                <FluentSelect Value="@FormData.CarBrand"
+                              ValueChanged="@(async (value) => await OnCarBrandChanged(value))"
+                              style="width: 100%;"
+                              TOption="string">
+                    <FluentOption value="">Select brand</FluentOption>
+                    @foreach (var brand in CarBrands)
+                    {
+                        <FluentOption value="@brand">@brand</FluentOption>
+                    }
+                </FluentSelect>
+            </FluentGridItem>
 
         <!-- VIN Number -->
         <FluentGridItem xs="12" sm="12" md="6">
@@ -101,4 +104,12 @@
     [Parameter] public List<string> CarBrands { get; set; } = new();
     [Parameter] public List<string> AvailableModels { get; set; } = new();
     [Parameter] public EventCallback<ChangeEventArgs> OnModelChanged { get; set; }
+    [Parameter]
+    public EventCallback<string> CarBrandChanged { get; set; }
+
+    private async Task OnCarBrandChanged(string value)
+    {
+        FormData.CarBrand = value;
+        await CarBrandChanged.InvokeAsync(value);
+    }
 }

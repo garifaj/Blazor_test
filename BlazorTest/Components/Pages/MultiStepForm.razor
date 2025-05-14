@@ -14,12 +14,12 @@
 @if (step == 1)
 {
     <div style="display: flex; justify-content: center; align-items: center;">
-    <OrderDetailsForm
-        FormData="@formData"
-        CarBrands="@carBrands"
-        AvailableModels="@availableModels"
-        OnModelChanged="OnModelChanged"
-        OnNext="NextStep" />
+        <OrderDetailsForm FormData="@formData"
+                          CarBrands="@carBrands"
+                          AvailableModels="@availableModels"
+                          OnModelChanged="OnModelChanged"
+                          OnNext="NextStep"
+                          CarBrandChanged="@HandleCarBrandChanged" />
     </div>
 }
 else if (step == 2)
@@ -60,6 +60,13 @@ else if (step == 3)
         { "Skoda", new List<string> { "Citigoe iV", "ELROQ", "ENYAQ","Fabia", "Karmiq", "Karoq", "Kodiaq", "Octavia Combi", "Scala", "Superb Combi" } },
         { "Volkswagen", new List<string> { "Amarok", "Caddy", "Caddy California", "Caddy Life", "Crafter", "Golf", "Golf R", "ID. Buzz", "ID. Buzz Cargo",  "ID.3", "ID.4", "Passat Variant", "Polo", "T-Cross", "T-Roc", "T-Roc Cabriolet", "T6", "T7 California" } }
     };
+
+    private async Task HandleCarBrandChanged(string brand)
+    {
+        formData.CarBrand = brand;
+        // Optionally call StateHasChanged to ensure re-render
+        StateHasChanged();
+    }
 
     private string selectedCategory = ""; // All services by default
 
