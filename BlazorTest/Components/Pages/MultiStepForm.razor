@@ -1,0 +1,161 @@
+﻿@page "/multistepform"
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+
+@rendermode InteractiveServer
+
+<div style="text-align: center; margin-bottom: 2rem;">
+    <h1 style="font-weight:bold; font-size: 35px;">Order form</h1>
+</div>
+
+<div style="text-align: center; margin-bottom: 1rem;">
+    <h5 style="color:#999">Getoar Arifaj / Prishtine - 13.05.2024</h5>
+</div>
+
+@if (step == 1)
+{
+    <div style="display: flex; justify-content: center; align-items: center;">
+    <OrderDetailsForm
+        FormData="@formData"
+        CarBrands="@carBrands"
+        AvailableModels="@availableModels"
+        OnModelChanged="OnModelChanged"
+        OnNext="NextStep" />
+    </div>
+}
+else if (step == 2)
+{
+    <div style="display: flex; justify-content: center; align-items: center;">
+    <ServicesForm
+        SelectedCategory="@selectedCategory"
+        SelectedCategoryChanged="@((string val) => selectedCategory = val)"
+        Services="@services"
+        ServicesCategory="@servicesCategory"
+        OnBack="PreviousStep"
+        OnNext="NextStep" />
+    </div>
+}
+else if (step == 3)
+{
+    <div style="display: flex; justify-content: center; align-items: center;">
+    <ParkingForm
+        SelectedParkingLot="@selectedParkingLot"
+        SelectedParkingLotChanged="@((string val) => selectedParkingLot = val)"
+        OnBack="PreviousStep"
+        OnNext="Restart" />
+    </div>
+}
+
+@code {
+    private int step = 1;
+
+    private FormData formData = new();
+
+    private List<string> carBrands = new() { "Audi", "Cupra", "Seat", "Skoda", "Volkswagen" };
+
+    private Dictionary<string, List<string>> carBrandModels = new()
+    {
+        { "Audi", new List<string> { "A1", "A3", "A5", "A6", "A8","Q2","Q3","Q5","Q7","Q8","A4","A6 e-tron","Q6","TT","e-tron", "e-tron GT"  } },
+        { "Cupra", new List<string> { "Formentor", "Leon", "Leon Sportstourer" } },
+        { "Seat", new List<string> { "Arona", "Ibiza", "Leon" } },
+        { "Skoda", new List<string> { "Citigoe iV", "ELROQ", "ENYAQ","Fabia", "Karmiq", "Karoq", "Kodiaq", "Octavia Combi", "Scala", "Superb Combi" } },
+        { "Volkswagen", new List<string> { "Amarok", "Caddy", "Caddy California", "Caddy Life", "Crafter", "Golf", "Golf R", "ID. Buzz", "ID. Buzz Cargo",  "ID.3", "ID.4", "Passat Variant", "Polo", "T-Cross", "T-Roc", "T-Roc Cabriolet", "T6", "T7 California" } }
+    };
+
+    private string selectedCategory = ""; // All services by default
+
+    private List<string> availableModels =>
+        !string.IsNullOrEmpty(formData.CarBrand) && carBrandModels.ContainsKey(formData.CarBrand)
+            ? carBrandModels[formData.CarBrand]
+            : new List<string>();
+
+    private List<string> servicesCategory = new() { "New Cars", "Used Cars", "Demo Cars", "Other", "BS Vehicles", "Extras", };
+
+    private Dictionary<string, List<string>> services = new()
+    {
+        {"New Cars", new List<string> { "New Car Preparation - 1", "New Car Preparation - 2", "New Car Post-Processing" } },
+        {"Used Cars", new List<string> { "Used Car Preparation - 1", "Used Car Preparation - 2", "Used Car Post-Processing Before Delivery - 1", "Used Car Post-Processing Before Delivery - 2"} },
+        {"Demo Cars", new List<string> { "Demonstration Vehicles - 1", "Demonstration Vehicles - 2", "Demonstration Vehicles - 3" } },
+        {"Other", new List<string> { "Dealer Vehicles", "Bodywork Vehicles", "Customer Vehicles - Workshop Exterior Wash", "Customer Vehicles - Workshop Vehicles"  } },
+        {"BS Vehicles", new List<string> { "BS Vehicles - 1", "BS Vehicles - 2", "BS Vehicles - 3 Lindlar", "BS Vehicles - 4 Lindlar" } },
+        {"Extras", new List<string> { "Ozone Treatment", "Complete Polish NW", "Seat Cleaning per Seat", "Remove Small Stone Stickers", "Remove Large Stickers","Headliner Cleaning", "Remove Flying Rust", "Remove Dog Hair", "Kneading", "Insect Removal","Rim Cleaning 2x Rims"   }  }
+    };
+
+    private void NextStep()
+    {
+        step++;
+    }
+
+    private void PreviousStep()
+    {
+        step--;
+    }
+
+    private void Restart()
+    {
+        formData = new();
+        step = 1;
+    }
+
+    private void OnModelChanged(ChangeEventArgs e)
+    {
+        var selected = e.Value as IEnumerable<string>;
+        if (selected != null)
+        {
+            formData.Models = selected.ToList();
+        }
+        else if (e.Value is string single)
+        {
+            formData.Models = new List<string> { single };
+        }
+        else
+        {
+            formData.Models = new List<string>();
+        }
+    }
+
+    private void OnServicesChanged(ChangeEventArgs e)
+    {
+        var selected = e.Value as IEnumerable<string>;
+        if (selected != null)
+        {
+            formData.Services = selected.ToList();
+        }
+        else if (e.Value is string single)
+        {
+            formData.Services = new List<string> { single };
+        }
+        else
+        {
+            formData.Services = new List<string>();
+        }
+    }
+
+    private void OnServiceCheckboxChanged(ChangeEventArgs e, string service)
+    {
+        bool isChecked = (bool)e.Value;
+
+        if (isChecked && !formData.Services.Contains(service))
+        {
+            formData.Services.Add(service);
+        }
+        else if (!isChecked && formData.Services.Contains(service))
+        {
+            formData.Services.Remove(service);
+        }
+    }
+
+    private string? selectedParkingLot;
+
+    public class FormData
+    {
+        public string? Name { get; set; }
+        public string? CarBrand { get; set; }
+        public List<string> Models { get; set; } = new();
+        public string? LicensePlate { get; set; }
+        public string? VINNumber { get; set; }
+        public string? OrderNumber { get; set; }
+        public string? CrossReferenceNumber { get; set; }
+        public string? Email { get; set; }
+        public List<string> Services { get; set; } = new();
+    }
+}

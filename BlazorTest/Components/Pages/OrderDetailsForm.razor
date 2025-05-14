@@ -1,0 +1,104 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using System.ComponentModel.DataAnnotations
+@using static BlazorTest.Components.Pages.MultiStepForm
+
+
+
+<FluentCard Style="width: 100%; max-width: 900px; margin: auto;">
+<EditForm Model="@FormData" OnValidSubmit="@OnNext"
+          AdditionalAttributes="@(new Dictionary<string, object> { ["name"] = "Step1Form" })">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <FluentGrid Spacing="3" AdaptiveRendering="true" Style="width: 100%;">
+        <!-- Name -->
+        <FluentGridItem xs="12" sm="12" md="6">
+            <label style="font-weight: 650; margin-bottom:0.5rem">Name:</label>
+            <FluentTextField @bind-Value="FormData.Name" style="width: 100%;" />
+        </FluentGridItem>
+
+        <!-- License Plate -->
+        <FluentGridItem xs="12" sm="12" md="6">
+            <label style="font-weight: 650; margin-bottom:0.5rem">License Plate:</label>
+            <FluentTextField @bind-Value="FormData.LicensePlate" style="width: 100%;" />
+        </FluentGridItem>
+
+        <!-- Car Brand -->
+        <FluentGridItem xs="12" sm="12" md="6">
+            <label style="font-weight: 650; margin-bottom:0.5rem">Car Brand:</label>
+            <FluentSelect @bind-Value="FormData.CarBrand" style="width: 100%;" TOption="string">
+                <FluentOption value="">Select brand</FluentOption>
+                @foreach (var brand in CarBrands)
+                {
+                    <FluentOption value="@brand">@brand</FluentOption>
+                }
+            </FluentSelect>
+        </FluentGridItem>
+
+        <!-- VIN Number -->
+        <FluentGridItem xs="12" sm="12" md="6">
+            <label style="font-weight: 650; margin-bottom:0.5rem">VIN Number:</label>
+            <FluentTextField @bind-Value="FormData.VINNumber" style="width: 100%;" />
+        </FluentGridItem>
+
+        <!-- Model -->
+        <FluentGridItem xs="12" sm="12" md="6">
+            <label style="font-weight: 650; margin-bottom:0.5rem">Model:</label>
+            <FluentListbox multiple
+                           Height="300px"
+                           @onchange="OnModelChanged"
+                           TOption="string">
+                @foreach (var model in AvailableModels)
+                {
+                    <FluentOption Value="@model"
+                                  selected="@FormData.Models.Contains(model)"
+                                  style="font-size: 14px;">
+                        @model
+                    </FluentOption>
+                }
+            </FluentListbox>
+        </FluentGridItem>
+
+        <!-- Order Number -->
+        <FluentGridItem xs="12" sm="12" md="6">
+            <div style="display:flex; gap: 1rem;">
+                <div>
+                    <label style="font-weight: 650; margin-bottom:0.5rem">Order Number:</label>
+                    <FluentTextField @bind-Value="FormData.OrderNumber" style="width: 100%;" />
+                </div>
+
+                <div>
+                    <label style="font-weight: 650; margin-bottom:0.5rem">Cross Reference Number:</label>
+                    <FluentTextField @bind-Value="FormData.CrossReferenceNumber" style="width: 100%;" />
+                </div>
+            </div>
+            <FluentCheckbox Style="margin-top: 1rem">
+                High priority
+            </FluentCheckbox>
+            <div style="margin-top: 1rem;">
+                <img src="https://file.kelleybluebookimages.com/kbb/base/evox/CP/54582/2025-Audi-A6-front_54582_032_1642x659_L5L5_cropped.png" alt="High Priority Indicator" style="max-width: 100%; height: auto;" />
+            </div>
+        </FluentGridItem>
+
+        <!-- Cross Reference Number -->
+        <FluentGridItem xs="12" sm="6" md="3">
+
+        </FluentGridItem>
+
+        <!-- Submit Button -->
+        <FluentGridItem xs="12">
+            <div style="text-align: right; margin-top: 1rem;">
+                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit">Next</FluentButton>
+            </div>
+        </FluentGridItem>
+    </FluentGrid>
+</EditForm>
+</FluentCard>
+
+@code {
+    [Parameter] public FormData FormData { get; set; } = new();
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public List<string> CarBrands { get; set; } = new();
+    [Parameter] public List<string> AvailableModels { get; set; } = new();
+    [Parameter] public EventCallback<ChangeEventArgs> OnModelChanged { get; set; }
+}

@@ -1,0 +1,48 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+
+<FluentCard Style="width: 100%; max-width: 900px; margin: auto;">
+    <div style="padding: 1rem;">
+        <h4 style="margin-bottom: 1rem;">Select Services</h4>
+
+        <!-- ComboBox for selecting category -->
+        <label style="font-weight: 650; margin-bottom: 0.5rem;">Filter by Category:</label>
+        <FluentSelect @bind-Value="SelectedCategory" style="width: 100%;" TOption="string">
+            <FluentOption value="">All categories</FluentOption>
+            @foreach (var category in ServicesCategory)
+            {
+                <FluentOption value="@category">@category</FluentOption>
+            }
+        </FluentSelect>
+
+
+
+        <!-- Display the services list based on selected category or all services -->
+        <div style="height: 450px; overflow-y: auto; border: 1px solid #ccc; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                @foreach (var category in (string.IsNullOrEmpty(SelectedCategory) ? ServicesCategory : new List<string> { SelectedCategory }))
+                {
+                    @foreach (var service in Services[category])
+                    {
+                        <FluentCheckbox>
+                            @service
+                        </FluentCheckbox>
+                    }
+                }
+            </div>
+        </div>
+
+        <div style="text-align: right; margin-top: 1.5rem;">
+            <FluentButton Appearance="Appearance.Neutral" @onclick="OnBack" style="margin-right: 1rem;">Back</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" @onclick="OnNext">Next</FluentButton>
+        </div>
+    </div>
+</FluentCard>
+
+@code {
+    [Parameter] public string SelectedCategory { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedCategoryChanged { get; set; }
+    [Parameter] public Dictionary<string, List<string>> Services { get; set; } = new();
+    [Parameter] public List<string> ServicesCategory { get; set; } = new();
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+}

@@ -1,0 +1,32 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components
+
+<FluentCard Style="width: 100%; max-width: 900px; margin: auto;">
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 2rem; padding: 2rem 0;">
+        <!-- Left: Parking Lot ComboBox -->
+        <div style="flex: 1; min-width: 200px;">
+            <label style="font-weight: 650; margin-bottom: 0.5rem; display: block;">Select Parking Lot:</label>
+            <FluentSelect @bind-Value="SelectedParkingLot" style="width: 100%;" TOption="string">
+                <FluentOption value="">Choose a spot</FluentOption>
+                <FluentOption value="P1">P1</FluentOption>
+                <FluentOption value="P2">P2</FluentOption>
+                <FluentOption value="P3">P3</FluentOption>
+            </FluentSelect>
+        </div>
+
+        <!-- Right: Map Image -->
+        <div style="flex: 2; display: flex; justify-content: flex-end;">
+            <img src="https://staticmapmaker.com/img/google-placeholder.png" alt="Parking Map" style="max-width: 100%; height: 450px; border-radius: 8px; border: 1px solid #ccc; object-fit:cover" />
+        </div>
+    </div>
+    <div style="text-align: right; margin-top: 1.5rem;">
+        <FluentButton Appearance="Appearance.Neutral" @onclick="OnBack" style="margin-right: 1rem;">Back</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" @onclick="OnNext">Next</FluentButton>
+    </div>
+</FluentCard>
+
+@code {
+    [Parameter] public string SelectedParkingLot { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedParkingLotChanged { get; set; }
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+}
