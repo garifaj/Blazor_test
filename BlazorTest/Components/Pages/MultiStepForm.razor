@@ -16,32 +16,33 @@
     <div style="display: flex; justify-content: center; align-items: center;">
         <OrderDetailsForm FormData="@formData"
                           CarBrands="@carBrands"
-                          AvailableModels="@availableModels"
+                          AvailableModels="@GetAvailableModels()"
                           OnModelChanged="OnModelChanged"
-                          OnNext="NextStep"
+                          OnNext="@(() => NextStep())"
                           CarBrandChanged="@HandleCarBrandChanged" />
     </div>
 }
 else if (step == 2)
 {
     <div style="display: flex; justify-content: center; align-items: center;">
-    <ServicesForm
-        SelectedCategory="@selectedCategory"
-        SelectedCategoryChanged="@((string val) => selectedCategory = val)"
-        Services="@services"
-        ServicesCategory="@servicesCategory"
-        OnBack="PreviousStep"
-        OnNext="NextStep" />
+        <ServicesForm SelectedServices="@formData.Services"
+                      SelectedServicesChanged="@((List<string> v) => formData.Services = v)"
+                      SelectedCategories="@selectedCategories"
+                      SelectedCategoriesChanged="@((List<string> v) => selectedCategories = v)"
+                      Services="@services"
+                      ServicesCategory="@servicesCategory"
+                      OnBack="@(() => PreviousStep())"
+                      OnNext="@(() => NextStep())" />
     </div>
 }
+
 else if (step == 3)
 {
     <div style="display: flex; justify-content: center; align-items: center;">
-    <ParkingForm
-        SelectedParkingLot="@selectedParkingLot"
-        SelectedParkingLotChanged="@((string val) => selectedParkingLot = val)"
-        OnBack="PreviousStep"
-        OnNext="Restart" />
+        <ParkingForm SelectedParkingLot="@selectedParkingLot"
+                     SelectedParkingLotChanged="@((string val) => selectedParkingLot = val)"
+                     OnBack="@(() => PreviousStep())"
+                     OnNext="@(() => Restart())" />
     </div>
 }
 
@@ -64,19 +65,18 @@ else if (step == 3)
     private async Task HandleCarBrandChanged(string brand)
     {
         formData.CarBrand = brand;
-        // Optionally call StateHasChanged to ensure re-render
-        StateHasChanged();
+        await Task.CompletedTask; // Fix for async method without await
     }
 
     private string selectedCategory = ""; // All services by default
+    private List<string> selectedCategories = new(); // Fix for missing variable
 
-    private List<string> availableModels =>
+    private List<string> GetAvailableModels() =>
         !string.IsNullOrEmpty(formData.CarBrand) && carBrandModels.ContainsKey(formData.CarBrand)
             ? carBrandModels[formData.CarBrand]
             : new List<string>();
 
-    private List<string> servicesCategory = new() { "New Cars", "Used Cars", "Demo Cars", "Other", "BS Vehicles", "Extras", };
-
+    private List<string> servicesCategory = new() { "New Cars", "Used Cars", "Demo Cars", "Other", "BS Vehicles", "Extras" };
     private Dictionary<string, List<string>> services = new()
     {
         {"New Cars", new List<string> { "New Car Preparation - 1", "New Car Preparation - 2", "New Car Post-Processing" } },
@@ -84,29 +84,16 @@ else if (step == 3)
         {"Demo Cars", new List<string> { "Demonstration Vehicles - 1", "Demonstration Vehicles - 2", "Demonstration Vehicles - 3" } },
         {"Other", new List<string> { "Dealer Vehicles", "Bodywork Vehicles", "Customer Vehicles - Workshop Exterior Wash", "Customer Vehicles - Workshop Vehicles"  } },
         {"BS Vehicles", new List<string> { "BS Vehicles - 1", "BS Vehicles - 2", "BS Vehicles - 3 Lindlar", "BS Vehicles - 4 Lindlar" } },
-        {"Extras", new List<string> { "Ozone Treatment", "Complete Polish NW", "Seat Cleaning per Seat", "Remove Small Stone Stickers", "Remove Large Stickers","Headliner Cleaning", "Remove Flying Rust", "Remove Dog Hair", "Kneading", "Insect Removal","Rim Cleaning 2x Rims"   }  }
+        {"Extras", new List<string> { "Ozone Treatment", "Complete Polish NW", "Seat Cleaning per Seat", "Remove Small Stone Stickers", "Remove Large Stickers","Headliner Cleaning", "Remove Flying Rust", "Remove Dog Hair", "Kneading", "Insect Removal","Rim Cleaning 2x Rims" } }
     };
 
-    private void NextStep()
-    {
-        step++;
-    }
-
-    private void PreviousStep()
-    {
-        step--;
-    }
-
-    private void Restart()
-    {
-        formData = new();
-        step = 1;
-    }
+    private void NextStep() => step++;
+    private void PreviousStep() => step--;
+    private void Restart() { formData = new FormData(); step = 1; }
 
     private void OnModelChanged(ChangeEventArgs e)
     {
-        var selected = e.Value as IEnumerable<string>;
-        if (selected != null)
+        if (e.Value is IEnumerable<string> selected)
         {
             formData.Models = selected.ToList();
         }
@@ -139,15 +126,16 @@ else if (step == 3)
 
     private void OnServiceCheckboxChanged(ChangeEventArgs e, string service)
     {
-        bool isChecked = (bool)e.Value;
-
-        if (isChecked && !formData.Services.Contains(service))
+        if (e.Value is bool isChecked)
         {
-            formData.Services.Add(service);
-        }
-        else if (!isChecked && formData.Services.Contains(service))
-        {
-            formData.Services.Remove(service);
+            if (isChecked && !formData.Services.Contains(service))
+            {
+                formData.Services.Add(service);
+            }
+            else if (!isChecked && formData.Services.Contains(service))
+            {
+                formData.Services.Remove(service);
+            }
         }
     }
 
