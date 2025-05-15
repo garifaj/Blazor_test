@@ -1,48 +1,181 @@
-﻿@using Microsoft.FluentUI.AspNetCore.Components
+﻿@using Microsoft.AspNetCore.Components
 
-<FluentCard Style="width: 100%; max-width: 900px; margin: auto;">
-    <div style="padding: 1rem;">
-        <h4 style="margin-bottom: 1rem;">Select Services</h4>
+<FluentCard Style="width:100%;max-width:970px;margin:auto;">
+    <div style="padding:1rem;">
 
-        <!-- ComboBox for selecting category -->
-        <label style="font-weight: 650; margin-bottom: 0.5rem;">Filter by Category:</label>
-        <FluentSelect @bind-Value="SelectedCategory" style="width: 100%;" TOption="string">
-            <FluentOption value="">All categories</FluentOption>
-            @foreach (var category in ServicesCategory)
+        <h4>Select Services</h4>
+
+        <!-- Category toggles -->
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+            <FluentButton Appearance="@(SelectedCategories.Count == 0 ? Appearance.Accent : Appearance.Neutral)"
+                          @onclick="ClearCategories">
+                All Categories
+            </FluentButton>
+
+            @foreach (var cat in ServicesCategory)
             {
-                <FluentOption value="@category">@category</FluentOption>
+                <FluentButton Appearance="@(SelectedCategories.Contains(cat) ? Appearance.Accent : Appearance.Neutral)"
+                              @onclick="() => ToggleCategory(cat)">
+                    @cat
+                </FluentButton>
             }
-        </FluentSelect>
-
-
-
-        <!-- Display the services list based on selected category or all services -->
-        <div style="height: 450px; overflow-y: auto; border: 1px solid #ccc; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                @foreach (var category in (string.IsNullOrEmpty(SelectedCategory) ? ServicesCategory : new List<string> { SelectedCategory }))
-                {
-                    @foreach (var service in Services[category])
-                    {
-                        <FluentCheckbox>
-                            @service
-                        </FluentCheckbox>
-                    }
-                }
-            </div>
         </div>
 
-        <div style="text-align: right; margin-top: 1.5rem;">
-            <FluentButton Appearance="Appearance.Neutral" @onclick="OnBack" style="margin-right: 1rem;">Back</FluentButton>
+        <!-- Services list -->
+        <div style="height:400px;overflow-y:auto;border:1px solid #ccc;padding:.5rem;border-radius:4px;">
+            @if (SelectedCategories.Count == 0)
+            {
+                @foreach (var kvp in Services)
+                {
+                    var cat = kvp.Key;
+                    foreach (var svc in kvp.Value)
+                    {
+                        @ServiceCheckbox(cat, svc)
+                    }
+                }
+            }
+            else
+            {
+                @foreach (var cat in SelectedCategories)
+                {
+                    <div style="margin-bottom:1.5rem;">
+                        <h5 style="margin-bottom:.5rem;color:#666;">@cat</h5>
+                        @foreach (var svc in Services[cat])
+                        {
+                            @ServiceCheckbox(cat, svc)
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Selected table -->
+        <div style="margin-top:2rem;">
+            <h5>Selected (@SelectedServices.Count)</h5>
+            @if (SelectedServices.Any())
+            {
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead style="background:#f5f5f5;">
+                        <tr>
+                            <th style="padding:.75rem;text-align:left;">Category</th>
+                            <th style="padding:.75rem;text-align:left;">Service</th>
+                            <th style="padding:.75rem;text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var serviceEntry in SelectedServices)
+                        {
+                            var parts = serviceEntry.Split('|', 2);
+                            var category = parts[0];
+                            var service = parts[1];
+
+                            <tr @key="serviceEntry" style="background:@(SelectedServices.IndexOf(serviceEntry)%2==0?"#fff":"#fafafa")">
+                                <td style="padding:.75rem">@category</td>
+                                <td style="padding:.75rem">@service</td>
+                                <td style="padding:.75rem;text-align:right">
+                                    <FluentButton Appearance="Appearance.Lightweight"
+                                                  @onclick="() => RemoveService(category, service)">
+                                        Remove
+                                    </FluentButton>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="color:#666;padding:1rem;background:#f8f9fa;border-radius:4px">
+                    No services selected
+                </div>
+            }
+        </div>
+
+        <!-- nav -->
+        <div style="text-align:right;margin-top:1.5rem;">
+            <FluentButton Appearance="Appearance.Neutral" @onclick="OnBack" style="margin-right:1rem">Back</FluentButton>
             <FluentButton Appearance="Appearance.Accent" @onclick="OnNext">Next</FluentButton>
         </div>
     </div>
 </FluentCard>
 
 @code {
-    [Parameter] public string SelectedCategory { get; set; } = "";
-    [Parameter] public EventCallback<string> SelectedCategoryChanged { get; set; }
+    [Parameter] public List<string> SelectedServices { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SelectedServicesChanged { get; set; }
+
+    [Parameter] public List<string> SelectedCategories { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SelectedCategoriesChanged { get; set; }
+
     [Parameter] public Dictionary<string, List<string>> Services { get; set; } = new();
     [Parameter] public List<string> ServicesCategory { get; set; } = new();
+
     [Parameter] public EventCallback OnNext { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
+
+    void ClearCategories()
+    {
+        SelectedCategories.Clear();
+        SelectedCategoriesChanged.InvokeAsync(SelectedCategories);
+    }
+
+    void ToggleCategory(string category)
+    {
+        if (SelectedCategories.Contains(category))
+            SelectedCategories.Remove(category);
+        else
+            SelectedCategories.Add(category);
+
+        SelectedCategoriesChanged.InvokeAsync(SelectedCategories);
+    }
+
+    RenderFragment ServiceCheckbox(string category, string service) => __builder =>
+     {
+         var id = $"{category}|{service}";
+         bool isChecked = SelectedServices.Contains(id);
+
+         __builder.OpenElement(0, "div");
+         __builder.AddAttribute(1, "key", id);
+         __builder.AddAttribute(2, "style", "display:flex;align-items:center;padding:.25rem 0; font-size:1.1rem;"); // bigger text
+         __builder.OpenElement(3, "input");
+         __builder.AddAttribute(4, "type", "checkbox");
+         __builder.AddAttribute(5, "checked", isChecked);
+         __builder.AddAttribute(6, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+     {
+         bool checkedValue = (bool)((ChangeEventArgs)e).Value!;
+         if (checkedValue)
+             AddService(category, service);
+         else
+             RemoveService(category, service);
+     }));
+         __builder.AddAttribute(7, "style", "width:22px; height:22px; margin-right:8px; cursor:pointer;"); // bigger checkbox
+         __builder.CloseElement();
+         __builder.AddContent(8, service);
+         __builder.CloseElement();
+     };
+
+
+    private void AddService(string category, string service)
+    {
+        var id = $"{category}|{service}";
+        if (!SelectedServices.Contains(id))
+        {
+            SelectedServices.Add(id);
+            SelectedServices = new List<string>(SelectedServices); // Force Blazor to detect changes
+            SelectedServicesChanged.InvokeAsync(SelectedServices);
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveService(string category, string service)
+    {
+        var id = $"{category}|{service}";
+        if (SelectedServices.Contains(id))
+        {
+            SelectedServices.Remove(id);
+            SelectedServices = new List<string>(SelectedServices); // Force Blazor to detect changes
+            SelectedServicesChanged.InvokeAsync(SelectedServices);
+            StateHasChanged();
+        }
+    }
+
 }
