@@ -3,9 +3,43 @@
 
 @rendermode InteractiveServer
 
-<div style="text-align: center; margin-bottom: 2rem;">
-    <h1 style="font-weight:bold; font-size: 35px;">Order form</h1>
+<div style="text-align: center; margin: 4rem auto; width: 50%; margin-left:600px;">
+    <!-- adds margin top and bottom -->
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0 auto;">
+        @for (int i = 1; i <= 3; i++)
+        {
+            <div style="display: flex; align-items: center; flex-grow: 1;">
+                <div style="
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: @(step >= i ? "#0078D4" : "#e0e0e0");
+                color: @(step >= i ? "white" : "#888");
+                font-weight: bold;">
+                    @i
+                </div>
+
+                @if (i < 3)
+                {
+                    <div style="
+                    flex-grow: 1;
+                    height: 4px;
+                    background-color: @(step > i ? "#0078D4" : "#e0e0e0");
+                    margin-left: 5px;
+                    margin-right: 5px;">
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
+
+
+
+
 
 <div style="text-align: center; margin-bottom: 1rem;">
     <h5 style="color:#999">Getoar Arifaj / Prishtine - 13.05.2024</h5>
