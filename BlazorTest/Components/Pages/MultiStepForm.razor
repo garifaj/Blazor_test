@@ -145,6 +145,7 @@ else if (step == 3)
     {
         public string? Name { get; set; }
         public string? CarBrand { get; set; }
+        public string? KeyNumber { get; set; }
         public List<string> Models { get; set; } = new();
         public string? LicensePlate { get; set; }
         public string? VINNumber { get; set; }
@@ -152,5 +153,7 @@ else if (step == 3)
         public string? CrossReferenceNumber { get; set; }
         public string? Email { get; set; }
         public List<string> Services { get; set; } = new();
+        public bool IsHighPriority { get; set; }
+        public DateTime? DesiredDeliveryDateTime { get; set; }
     }
 }
