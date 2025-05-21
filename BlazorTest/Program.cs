@@ -1,5 +1,8 @@
-using BlazorTest.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
+using BlazorTest.Components;
+using Microsoft.EntityFrameworkCore;
+using BlazorTest.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
+builder.Services.AddHttpClient();
+
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 var app = builder.Build();
 
@@ -27,3 +37,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
