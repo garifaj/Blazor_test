@@ -1,192 +1,496 @@
-﻿@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components
 @using System.ComponentModel.DataAnnotations
-@using static BlazorTest.Components.Pages.MultiStepForm
+@page "/OrderDetailsForm"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.FluentUI.AspNetCore.Components
+@using System.ComponentModel.DataAnnotations
+@using BlazorTest.Models
+@using BlazorTest.Data
+@using System.Text.RegularExpressions
+@inject ApplicationDbContext Db
 
 
 
-
-<div Style="width: 100%; max-width: 900px; margin: auto;  ">
-<EditForm Model="@FormData" OnValidSubmit="@OnNext"
-          AdditionalAttributes="@(new Dictionary<string, object> { ["name"] = "Step1Form" })">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <FluentGrid Spacing="3" AdaptiveRendering="true" Style="width: 100%;">
-        <!-- Customer info card-->
-        <FluentCard Style="margin-bottom:1rem;">
-            <h4 >Customer info</h4>
-                <FluentGridItem xs="12" sm="12" md="12">
-                    <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width: 100%;">
-                        <FluentGridItem xs="12" sm="12" md="12" lg="4">
-                            <label style="font-weight: 650; margin-bottom:0.5rem">Customer Name:</label>
-                            <FluentTextField @bind-Value="FormData.Name" style="width: 100%;" />
-                        </FluentGridItem>
-                        <FluentGridItem xs="12" sm="12" md="12" lg="4">
-                            <label style="font-weight: 650; margin-bottom:0.5rem">Order Number:</label>
-                            <FluentTextField @bind-Value="FormData.OrderNumber" style="width: 100%;" />
-                        </FluentGridItem>
-                        <FluentGridItem xs="12" sm="12" md="12" lg="4">
-                            <label style="font-weight: 650; margin-bottom:0.5rem">Cross Reference Number:</label>
-                            <FluentTextField @bind-Value="FormData.CrossReferenceNumber" style="width: 100%;" />
-                        </FluentGridItem>
-                    </FluentGrid>
-                </FluentGridItem>
-        </FluentCard>
-
-        <!-- Vehicle info card-->
-            
-        <FluentCard>
-                    <h4>Vehicle details</h4>
-                    @* Vehicle type buttons*@
-                    <FluentGridItem xs="12" style="margin-bottom: 3rem; margin-top:2rem;">
-                        <FluentGrid Spacing="0" AdaptiveRendering="true" Style="width: 100%; display:flex;">
-                            <FluentGridItem xs="4" style="display: flex; justify-content: center;">
-                                <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
-                                    <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleCar())" />
-                                </FluentButton>
-                            </FluentGridItem>
-                            <FluentGridItem xs="4" style="display: flex; justify-content: center;">
-                                <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
-                                    <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleMotorcycle())" Color="@Color.Neutral" />
-                                </FluentButton>
-                            </FluentGridItem>
-                            <FluentGridItem xs="4" style="display: flex; justify-content: center;">
-                                <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
-                                    <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleTruckProfile())" Color="@Color.Neutral" />
-                                </FluentButton>
-                            </FluentGridItem>
-                        </FluentGrid>
-                    </FluentGridItem>
-                    
-
-                    @* Vehicle inputs*@
-                    <FluentGridItem xs="12" sm="12" md="12">
-                        <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width: 100%;">
-                            <!-- Car key number -->
-                            <FluentGridItem xs="12" sm="12" md="12" lg="4">
-                                <label style="font-weight: 650; margin-bottom:0.5rem">Car key number:</label>
-                                <FluentTextField @bind-Value="FormData.KeyNumber" style="width: 100%;" />
-                            </FluentGridItem>
-
-                            <!-- License Plate -->
-                            <FluentGridItem xs="12" sm="12" md="12" lg="4">
-                                <label style="font-weight: 650; margin-bottom:0.5rem">License number:</label>
-                                <FluentTextField @bind-Value="FormData.LicensePlate" style="width: 100%;" />
-                            </FluentGridItem>
-
-                            <!-- VIN Number -->
-                            <FluentGridItem xs="12" sm="12" md="12" lg="4">
-                                <label style="font-weight: 650; margin-bottom:0.5rem">VIN Number:</label>
-                                <FluentTextField @bind-Value="FormData.VINNumber" style="width: 100%;" />
-                            </FluentGridItem>
-                        </FluentGrid>
-                    </FluentGridItem>
-
-                    @*Vehicle model, brand and image*@
-
-                    <FluentGridItem xs="12" sm="12" md="12">
-                        <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width:100%;">
-                            <FluentGridItem xs="12" sm="12" md="5" lg="5">
-                                <!-- Car Brand -->
-                                <FluentGridItem xs="12" Style="margin-bottom:1rem;">
-                                    <label style="font-weight: 650; margin-bottom:0.5rem">Car Brand:</label>
-                                    <FluentSelect Value="@FormData.CarBrand"
-                                                  ValueChanged="@(async (value) => await OnCarBrandChanged(value))"
-                                                  style="width: 100%;"
-                                                  TOption="string">
-                                        <FluentOption value="">Select brand</FluentOption>
-                                        @foreach (var brand in CarBrands)
-                                        {
-                                            <FluentOption value="@brand">@brand</FluentOption>
-                                        }
-                                    </FluentSelect>
-                                </FluentGridItem>
-
-                                <!-- List box-->
-                                <FluentGridItem xs="12" sm="12" md="6" lg="6">
-                                    <label style="font-weight: 650; margin-bottom:0.5rem">Model:</label>
-                                    <FluentListbox multiple
-                                                   Height="250px"
-                                                   @onchange="OnModelChanged"
-                                                   TOption="string">
-                                        @foreach (var model in AvailableModels)
-                                        {
-                                            <FluentOption Value="@model"
-                                                          selected="@FormData.Models.Contains(model)"
-                                                          style="font-size: 14px;">
-                                                @model
-                                            </FluentOption>
-                                        }
-                                    </FluentListbox>
-                                </FluentGridItem>
-                            </FluentGridItem>
-
-                            <!-- Image section-->
-                            <FluentGridItem xs="12" sm="12" md="7" lg="7" Style="display: flex; justify-content: center; align-items: center;">
-                                <FluentGridItem xs="12" sm="12" md="7" lg="7">
-                                    <FluentGridItem xs="12" Style="margin-top: 4rem; padding:3rem;">
-                                        <img src="https://file.kelleybluebookimages.com/kbb/base/evox/CP/54582/2025-Audi-A6-front_54582_032_1642x659_L5L5_cropped.png"
-                                             alt="High Priority Indicator"
-                                             style="max-width: 100%; height: auto;" />
+<FluentWizard StepperPosition="@(IsTop? StepperPosition.Top: StepperPosition.Left)"
+              StepSequence="@StepSequence"
+              DisplayStepNumber="@(WizardStepStatus.Current | WizardStepStatus.Next)"
+              Border="WizardBorder.Outside"
+              StepTitleHiddenWhen="@GridItemHidden.XsAndDown"
+              Height="auto"
+              OnFinish="@OnFinishedAsync">
+    <Steps>
+        <FluentWizardStep Label="Order "
+                          OnChange="@OnStepChange">
+                <EditForm Model="@formData" OnValidSubmit="@NextStep">
+                    <FluentGrid Spacing="0" AdaptiveRendering="true" Style="width: 100%;">
+                                <!--First row on form-->
+                                <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width: 100%;">
+                                    <FluentGridItem xs="12" sm="6" md="6" lg="3">
+                                        <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Customer Name</FluentLabel>
+                                        <FluentTextField @bind-Value="formData.Name" style="width: 100%;" />
                                     </FluentGridItem>
-                                </FluentGridItem>
-                            </FluentGridItem>
-                        </FluentGrid>
-                    </FluentGridItem>
+                                    <FluentGridItem xs="12" sm="6" md="6" lg="3">
+                                        <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Order Number</FluentLabel>
+                                        <FluentTextField @bind-Value="formData.OrderNumber" style="width: 100%;" />
+                                    </FluentGridItem>
+                                    <FluentGridItem xs="12" sm="6" md="6" lg="3">
+                                        <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Cross Reference No</FluentLabel>
+                                        <FluentTextField @bind-Value="formData.CrossReferenceNumber" style="width: 100%;" />
+                                    </FluentGridItem>
+                                    <FluentGridItem xs="12" sm="6" md="6" lg="3">
+                                        <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Car key number</FluentLabel>
+                                        <FluentTextField @bind-Value="formData.KeyNumber" style="width: 100%;" />
+                                    </FluentGridItem>
+                                </FluentGrid>
 
-                    
-                <!-- Service desired delivery date and time section -->
-                <FluentGridItem xs="12" sm="12" md="12" style="margin-top:2rem; text-align:center">
-                    <label style="font-weight: 650; margin-bottom:1.5rem; margin-right:0.5rem;">Desired Delivery Date &amp; Time:</label>
-                    <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width:100%; align-items: center;">
-                        <!-- High Priority Checkbox (left) -->
-                        <FluentGridItem xs="12" sm="12" md="6" lg="6" style="display: flex; align-items: center; justify-content:center">
-                            <FluentCheckbox  style="margin-right: 0.5rem;" />
-                            <label style="font-weight: 650; margin-left:0.5rem;">High Priority</label>
-                        </FluentGridItem>
+                                <!--Second row on form-->
+                                <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width: 100%;">
+                                    <!-- VIN Number -->
+                                    <FluentGridItem xs="12" sm="6" md="6" lg="4">
+                                        <label style="font-weight: 650; margin-bottom:0.5rem">VIN Number</label>
+                                        <FluentTextField @bind-Value="formData.VINNumber" style="width: 100%;" />
+                                    </FluentGridItem>
 
-                        <!-- Date and Time Input (right) -->
-                        <FluentGridItem xs="12" sm="12" md="6" lg="6" style="display: flex; align-items: center; justify-content: center;">
-                            <FluentDatePicker @bind-Value="FormData.DesiredDeliveryDateTime"
-                                              Style="margin-right:0.5rem;"
-                                              />
+                                    <!-- Car type select ( SHOULD BE RADIO BUTTONS : TODO) -->
+                                    <FluentGridItem xs="12" sm="6" md="6" lg="4" Style="display:flex; align-content:center" >
+                                       <FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="30">
+                                       <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
+                                            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleCar())" />
+                                       </FluentButton>
+                                        
+                                        <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
+                                            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleMotorcycle())" Color="@Color.Neutral" />
+                                        </FluentButton>
+                                        
+                                        <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
+                                            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleTruckProfile())" Color="@Color.Neutral" />
+                                        </FluentButton>
+                                        <FluentButton Style="border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 0.05rem;">
+                                            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size32.VehicleTruckProfile())" Color="@Color.Neutral" />
+                                        </FluentButton>
+                                       </FluentStack>
+                                   </FluentGridItem>
 
-                            <FluentTimePicker @bind-Value="FormData.DesiredDeliveryDateTime"
-                                               />
-                        </FluentGridItem>
+                                   <!-- High Priority Checkbox (left)  Date and Time Input (right)-->
+                                    <FluentGridItem xs="12" sm="12" md="12" lg="4" Style="display:flex; align-content:center" >
+                                        <FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center">
+                                            <FluentCheckbox @bind-Value="formData.IsHighPriority" style="margin-right: 0.5rem;" />
+                                            <FluentLabel style="font-weight: 650; margin-left:0.5rem;">High Priority</FluentLabel>
+                                            @if (formData.IsHighPriority)
+                                            {
+                                               <FluentDatePicker @bind-Value="formData.DesiredDeliveryDateTime"
+                                                              Style="margin-right:0.5rem;" />
+
+                                            <FluentTimePicker @bind-Value="formData.DesiredDeliveryDateTime" />
+                                        
+                                            <FluentButton>
+                                                <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size24.Location())" Color="Color.Accent" />
+                                            </FluentButton> 
+                                            }
+                                    </FluentStack>
+                                    </FluentGridItem>
+                                </FluentGrid>
+                            @*Vehicle model, brand and image*@
+                                <FluentGrid Spacing="2" AdaptiveRendering="true" Style="width:100%;">
+                                     <!-- Car Brand Listbox -->
+                                    <FluentGridItem xs="12" sm="6" md="4" lg="3" Style="margin-bottom:1rem;">
+                                            <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Car Brand</FluentLabel>
+                                                  <FluentListbox TValue="string"
+                                                       TOption="CarBrand"
+                                       Value="@selectedBrandId?.ToString()"
+                                       ValueChanged="@OnBrandSelected"
+                                       Style="width:100%; height:250px;">
+                                     @foreach (var brand in carBrands)
+                                     {
+                                         <FluentOption TOption="CarBrand" Value="@brand.carBrandID.ToString()">
+                                         @brand.carBrandName
+                                    </FluentOption>
+                                       }
+                                                  </FluentListbox>
+                                       </FluentGridItem>
+                                        <!-- Model box-->
+                                       
+                                        <FluentGridItem xs="12" sm="6" md="4" lg="3">
+                                            <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Model</FluentLabel>
+                                            @if (selectedBrandId.HasValue)
+                                        {
+                       
+                                            
+                                            <FluentListbox TValue="string"
+                                              TOption="CarModel"
+                                              Value="@selectedModelId?.ToString()"
+                                              ValueChanged="@OnModelSelected"
+                                              Style="width:100%; height:250px;">
+                                             @foreach (var model in filteredCarModels)
+                                            {
+                                                <FluentOption TOption="CarModel" Value="@model.carModelID.ToString()">
+                                                    @($"{model.modelName} ({model.modelType})")
+                                                </FluentOption>
+                                            }
+                                            </FluentListbox>
+                       
+                                        }
+                                        </FluentGridItem>
+                                        <!-- Parking lots-->
+                                        <FluentGridItem xs="12" sm="6" md="4" lg="3">
+                                        <FluentLabel style="font-weight: 650; margin-bottom:0.5rem">Parking lots</FluentLabel>
+                                        <FluentListbox multiple
+                                                       Height="250px"
+                                                       TOption="string">
+                                            <FluentOption value="P1">P1</FluentOption>
+                                            <FluentOption value="P2">P2</FluentOption>
+                                            <FluentOption value="P3">P3</FluentOption>
+                                        </FluentListbox>
+                                    </FluentGridItem>
+                                    <!-- Image section-->
+                                      @if (selectedModel != null)
+                {
+                                    <FluentGridItem xs="12" sm="6" md="12" lg="3" Style="display: flex; justify-content: center; align-items: center; ">
+                                                
+
+                                @if (!string.IsNullOrEmpty(selectedModel.ImageBase64))
+                                {
+                                    <img src="data:image/jpeg;base64,@(Regex.Replace(selectedModel.ImageBase64, "^data:image/[^;]+;base64,", ""))"
+                                         alt="Car Model"
+                                         style="max-width: 100%; height: auto;" />
+                                }
+                                else
+                                {
+                                    <FluentMessageBar Message="No image available for this model" />
+                                }
+                                
+                                        </FluentGridItem>
+                                
+                                    }
+                                    </FluentGrid>
                     </FluentGrid>
-                </FluentGridItem>
+                </EditForm>
+        </FluentWizardStep>
+        <FluentWizardStep Label="Get started"
+                          Summary="Begin the tasks"
+                          OnChange="@OnStepChange">
+            
+                    <h4 style="font-size:1.1rem;">Select Services</h4>
+                    <!-- Category toggles -->
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                        <FluentButton Appearance="@(selectedCategories.Count == 0 ? Appearance.Accent : Appearance.Neutral)"
+                                      @onclick="ClearCategories"
+                                      Style="font-size:0.9rem;">
+                            All Categories
+                        </FluentButton>
 
+                        @foreach (var cat in servicesCategory)
+                        {
+                            <FluentButton Appearance="@(selectedCategories.Contains(cat) ? Appearance.Accent : Appearance.Neutral)"
+                                          @onclick="() => ToggleCategory(cat)"
+                                          Style="font-size:0.9rem;">
+                                @cat
+                            </FluentButton>
+                        }
+                    </div>
+                    <!-- Services list -->
+                    <div style="height:400px;overflow-y:auto;border:1px solid #ccc;padding:.5rem;border-radius:4px;font-size:0.9rem;">
+                        @if (selectedCategories.Count == 0)
+                        {
+                            @foreach (var kvp in services)
+                            {
+                                var cat = kvp.Key;
+                                foreach (var svc in kvp.Value)
+                                {
+                                    @ServiceCheckbox(cat, svc)
+                                }
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var cat in selectedCategories)
+                            {
+                                <div style="margin-bottom:1.5rem;">
+                                    <h5 style="margin-bottom:.5rem;color:#666;font-size:1rem;">@cat</h5>
+                                    @foreach (var svc in services[cat])
+                                    {
+                                        @ServiceCheckbox(cat, svc)
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                    <!-- Selected table -->
+                    <div style="margin-top:2rem;">
+                        <h5 style="font-size:1rem;">Selected (@formData.Services.Count)</h5>
+                        @if (formData.Services.Any())
+                        {
+                            <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.7rem;">
+                                <thead style="background:#f5f5f5;">
+                                    <tr>
+                                        <th style="padding:0.1rem;text-align:left;">Category</th>
+                                        <th style="padding:0.1rem;text-align:left;">Service</th>
+                                        <th style="padding:0.1rem;text-align:right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var serviceEntry in formData.Services)
+                                    {
+                                        var parts = serviceEntry.Split('|', 2);
+                                        var category = parts[0];
+                                        var service = parts[1];
+                                        <tr @key="serviceEntry" style="background:@(formData.Services.IndexOf(serviceEntry) % 2 == 0 ? "#fff" : "#fafafa")">
+                                            <td style="padding:0.2rem;">@category</td>
+                                            <td style="padding:0.2rem;">@service</td>
+                                            <td style="padding:0.2rem;text-align:right;">
+                                                <FluentButton Appearance="Appearance.Lightweight"
+                                                              @onclick="() => RemoveService(category, service)"
+                                                              title="Remove Service"
+                                                              Style="font-size:0.9rem;">
+                                                    <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.BinRecycle())" Color="@Color.Error" />
+                                                </FluentButton>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+                        }
+                        else
+                        {
+                            <div style="color:#666;padding:1rem;background:#f8f9fa;border-radius:4px;font-size:0.9rem;">
+                                No services selected
+                            </div>
+                        }
+                    </div
                 
             
-        </FluentCard>
+        </FluentWizardStep>
+        <FluentWizardStep Disabled="true"
+                          Label="Disabled step"
+                          Summary="This step is disabled"
+                          OnChange="@OnStepChange">
+            Nunc dignissim tortor eget lacus porta tristique. Nunc in posuere dui. Cras ligula ex,
+            ullamcorper in gravida in, euismod vitae purus. Lorem ipsum dolor sit amet, consectetur
+            adipiscing elit. Aliquam at velit leo. Suspendisse potenti. Cras dictum eu augue in laoreet.
+        </FluentWizardStep>
+        
+    </Steps>
+</FluentWizard>
 
-        <!-- Submit Button -->
-        <FluentGridItem xs="12">
-            <div style="text-align: right; margin-top: 1rem;">
-                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit">Next</FluentButton>
-            </div>
-        </FluentGridItem>
-    </FluentGrid>
-</EditForm>
-</div>
 
 @code {
 
-    [Parameter] public FormData FormData { get; set; } = new();
-    [Parameter] public EventCallback OnNext { get; set; }
-    [Parameter] public List<string> CarBrands { get; set; } = new();
-    [Parameter] public List<string> AvailableModels { get; set; } = new();
-    [Parameter] public EventCallback<ChangeEventArgs> OnModelChanged { get; set; }
-    [Parameter]
-    public EventCallback<string> CarBrandChanged { get; set; }
 
+    bool IsTop = true;
+    WizardStepSequence StepSequence = WizardStepSequence.Linear;
 
-    private async Task OnCarBrandChanged(string value)
+    void OnStepChange(FluentWizardStepChangeEventArgs e)
     {
-        FormData.CarBrand = value;
-        await CarBrandChanged.InvokeAsync(value);
+        
     }
 
+    async Task OnFinishedAsync()
+    {
+        
+    }
+
+    private int step = 1;
+
+    private FormData formData = new();
+
+        private List<CarModel> allCarModels = new();
+    private List<CarBrand> carBrands = new();
+    private List<CarModel> filteredCarModels = new();
+    private int? selectedBrandId;
+    private int? selectedModelId;
+    private CarModel? selectedModel => filteredCarModels.FirstOrDefault(m => m.carModelID == selectedModelId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            allCarModels = await Db.CarModels
+                .OrderBy(m => m.modelName)
+                .ToListAsync();
+
+            carBrands = await Db.CarBrands
+                .OrderBy(b => b.carBrandName)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading data: {ex.Message}");
+        }
+    }
+
+    private async Task OnBrandSelected(string? brandId)
+    {
+        if (int.TryParse(brandId, out var id))
+        {
+            selectedBrandId = id;
+            selectedModelId = null; // Reset model selection when brand changes
+            filteredCarModels = allCarModels
+                .Where(m => m.carBrandID == id)
+                .OrderBy(m => m.modelName)
+                .ToList();
+        }
+    }
+
+    private string GetBrandName(int brandId)
+    {
+        return carBrands.FirstOrDefault(b => b.carBrandID == brandId)?.carBrandName ?? "Unknown Brand";
+    }
+
+    private Task OnModelSelected(string? value)
+    {
+        if (int.TryParse(value, out var modelId))
+        {
+            selectedModelId = modelId;
+        }
+        return Task.CompletedTask;
+    }
+
+   
+
+    private string selectedCategory = ""; // All services by default
+    private List<string> selectedCategories = new(); // Fix for missing variable
+
+   
+
+    private List<string> servicesCategory = new() { "New Cars", "Used Cars", "Demo Cars", "Other", "BS Vehicles", "Extras" };
+    private Dictionary<string, List<string>> services = new()
+    {
+        {"New Cars", new List<string> { "New Car Preparation - 1", "New Car Preparation - 2", "New Car Post-Processing" } },
+        {"Used Cars", new List<string> { "Used Car Preparation - 1", "Used Car Preparation - 2", "Used Car Post-Processing Before Delivery - 1", "Used Car Post-Processing Before Delivery - 2"} },
+        {"Demo Cars", new List<string> { "Demonstration Vehicles - 1", "Demonstration Vehicles - 2", "Demonstration Vehicles - 3" } },
+        {"Other", new List<string> { "Dealer Vehicles", "Bodywork Vehicles", "Customer Vehicles - Workshop Exterior Wash", "Customer Vehicles - Workshop Vehicles"  } },
+        {"BS Vehicles", new List<string> { "BS Vehicles - 1", "BS Vehicles - 2", "BS Vehicles - 3 Lindlar", "BS Vehicles - 4 Lindlar" } },
+        {"Extras", new List<string> { "Ozone Treatment", "Complete Polish NW", "Seat Cleaning per Seat", "Remove Small Stone Stickers", "Remove Large Stickers","Headliner Cleaning", "Remove Flying Rust", "Remove Dog Hair", "Kneading", "Insect Removal","Rim Cleaning 2x Rims" } }
+    };
+
+    private void NextStep()
+    {
+        step++;
+    }
+
+    private void PreviousStep()
+    {
+        step--;
+    }
+    private void Restart() { formData = new FormData(); step = 1; }
+
+
+
+
+    private void OnServicesChanged(ChangeEventArgs e)
+    {
+        var selected = e.Value as IEnumerable<string>;
+        if (selected != null)
+        {
+            formData.Services = selected.ToList();
+        }
+        else if (e.Value is string single)
+        {
+            formData.Services = new List<string> { single };
+        }
+        else
+        {
+            formData.Services = new List<string>();
+        }
+    }
+
+    private void OnServiceCheckboxChanged(ChangeEventArgs e, string service)
+    {
+        if (e.Value is bool isChecked)
+        {
+            if (isChecked && !formData.Services.Contains(service))
+            {
+                formData.Services.Add(service);
+            }
+            else if (!isChecked && formData.Services.Contains(service))
+            {
+                formData.Services.Remove(service);
+            }
+        }
+    }
+
+    void ClearCategories()
+    {
+        selectedCategories.Clear();
+        StateHasChanged();
+    }
+
+    void ToggleCategory(string category)
+    {
+        if (selectedCategories.Contains(category))
+            selectedCategories.Remove(category);
+        else
+            selectedCategories.Add(category);
+
+        StateHasChanged();
+    }
+
+    RenderFragment ServiceCheckbox(string category, string service) => __builder =>
+    {
+        var id = $"{category}|{service}";
+        bool isChecked = formData.Services.Contains(id);
+
+        __builder.OpenElement(0, "div");
+        __builder.AddAttribute(1, "key", id);
+        __builder.AddAttribute(2, "style", "display:flex;align-items:center;padding:.25rem 0;font-size:0.7rem;");
+        __builder.OpenElement(3, "input");
+        __builder.AddAttribute(4, "type", "checkbox");
+        __builder.AddAttribute(5, "checked", isChecked);
+        __builder.AddAttribute(6, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+        {
+            bool checkedValue = (bool)((ChangeEventArgs)e).Value!;
+            if (checkedValue)
+                AddService(category, service);
+            else
+                RemoveService(category, service);
+        }));
+        __builder.AddAttribute(7, "style", "width:18px; height:18px; margin-right:8px; cursor:pointer;");
+        __builder.CloseElement();
+        __builder.AddContent(8, service);
+        __builder.CloseElement();
+    };
+
+    private void AddService(string category, string service)
+    {
+        var id = $"{category}|{service}";
+        if (!formData.Services.Contains(id))
+        {
+            formData.Services.Add(id);
+            formData.Services = new List<string>(formData.Services);
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveService(string category, string service)
+    {
+        var id = $"{category}|{service}";
+        if (formData.Services.Contains(id))
+        {
+            formData.Services.Remove(id);
+            formData.Services = new List<string>(formData.Services);
+            StateHasChanged();
+        }
+    }
+
+    private string? selectedParkingLot;
+
+    public class FormData
+    {
+        public string? Name { get; set; }
+     
+        public string? KeyNumber { get; set; }
+       
+        public string? LicensePlate { get; set; }
+        public string? VINNumber { get; set; }
+        public string? OrderNumber { get; set; }
+        public string? CrossReferenceNumber { get; set; }
+        public string? Email { get; set; }
+        public List<string> Services { get; set; } = new();
+        public bool IsHighPriority { get; set; }
+        public DateTime? DesiredDeliveryDateTime { get; set; }
+
+    }
 }
 
